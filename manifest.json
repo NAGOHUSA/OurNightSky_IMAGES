@@ -1,0 +1,15 @@
+{
+     "images": [
+       {
+         "filename": "new-image.jpg",
+         "url": "https://raw.githubusercontent.com/YOUR_USERNAME/night-sky-images/main/images/new-image.jpg",
+         "uploadedAt": "2025-10-05T14:30:00Z"
+       },
+       {
+         "filename": "test-image.jpg",
+         "url": "https://raw.githubusercontent.com/YOUR_USERNAME/night-sky-images/main/images/test-image.jpg",
+         "uploadedAt": "2025-10-05T12:00:00Z"
+       }
+     ],
+     "lastUpdated": "2025-10-05T14:30:00Z"
+   }
