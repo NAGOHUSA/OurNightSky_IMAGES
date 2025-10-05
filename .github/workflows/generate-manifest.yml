@@ -1,0 +1,132 @@
+name: Auto-Generate Manifest
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'images/**'
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+jobs:
+  generate-manifest:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Get full history for accurate file dates
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      
+      - name: Generate manifest.json
+        env:
+          GITHUB_USERNAME: ${{ github.repository_owner }}
+          REPO_NAME: ${{ github.event.repository.name }}
+        run: |
+          python3 << 'EOF'
+          import os
+          import json
+          from datetime import datetime, timezone
+          from pathlib import Path
+
+          # Get config from environment
+          GITHUB_USERNAME = os.environ.get('GITHUB_USERNAME')
+          REPO_NAME = os.environ.get('REPO_NAME')
+          IMAGES_FOLDER = "images"
+
+          def get_file_creation_time(filepath):
+              """Get the file modification time"""
+              try:
+                  timestamp = os.path.getmtime(filepath)
+                  return datetime.fromtimestamp(timestamp, tz=timezone.utc)
+              except:
+                  return datetime.now(timezone.utc)
+
+          def generate_manifest():
+              """Generate manifest.json from all images"""
+              
+              image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.webp'}
+              images = []
+              images_path = Path(IMAGES_FOLDER)
+              
+              if not images_path.exists():
+                  print(f"❌ No {IMAGES_FOLDER} folder found")
+                  return False
+              
+              print(f"🔍 Scanning {IMAGES_FOLDER}/ for images...")
+              
+              for file in sorted(images_path.iterdir()):
+                  if file.is_file() and file.suffix.lower() in image_extensions:
+                      file_time = get_file_creation_time(file)
+                      
+                      url = f"https://raw.githubusercontent.com/{GITHUB_USERNAME}/{REPO_NAME}/main/{IMAGES_FOLDER}/{file.name}"
+                      
+                      image_entry = {
+                          "filename": file.name,
+                          "url": url,
+                          "uploadedAt": file_time.isoformat()
+                      }
+                      
+                      images.append(image_entry)
+                      print(f"  ✓ Found: {file.name}")
+              
+              if not images:
+                  print(f"❌ No images found in {IMAGES_FOLDER}/")
+                  return False
+              
+              manifest = {
+                  "images": sorted(images, key=lambda x: x['uploadedAt'], reverse=True),
+                  "lastUpdated": datetime.now(timezone.utc).isoformat()
+              }
+              
+              with open('manifest.json', 'w', encoding='utf-8') as f:
+                  json.dump(manifest, f, indent=2, ensure_ascii=False)
+              
+              print(f"\n✅ Generated manifest.json with {len(images)} image(s)")
+              return True
+
+          # Run generator
+          if generate_manifest():
+              print("✅ Manifest generation complete!")
+          else:
+              print("⚠️ Manifest generation failed")
+              exit(1)
+          EOF
+      
+      - name: Check for changes
+        id: check_changes
+        run: |
+          if git diff --quiet manifest.json; then
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️ No changes to manifest.json"
+          else
+            echo "changed=true" >> $GITHUB_OUTPUT
+            echo "📝 manifest.json has been updated"
+          fi
+      
+      - name: Commit and push manifest
+        if: steps.check_changes.outputs.changed == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add manifest.json
+          git commit -m "🤖 Auto-update manifest.json [skip ci]"
+          git push
+      
+      - name: Summary
+        run: |
+          echo "## 🌌 Manifest Generation Complete" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ -f manifest.json ]; then
+            IMAGE_COUNT=$(python3 -c "import json; data=json.load(open('manifest.json')); print(len(data['images']))")
+            echo "✅ Successfully generated manifest with **${IMAGE_COUNT}** images" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Your app will automatically fetch these images on next launch!" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "⚠️ Manifest generation encountered an issue" >> $GITHUB_STEP_SUMMARY
+          fi
