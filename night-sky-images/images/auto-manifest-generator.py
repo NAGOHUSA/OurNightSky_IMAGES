@@ -12,7 +12,7 @@ from pathlib import Path
 # ⚠️ CONFIGURE THESE SETTINGS
 GITHUB_USERNAME = "NAGOHUSA"  # Replace with your GitHub username
 REPO_NAME = "OurNightSky_IMAGES"     # Your repository name
-IMAGES_FOLDER = "night-sky-images/images"           # Folder containing your images
+IMAGES_FOLDER = "images"           # Folder containing your images
 
 def get_file_creation_time(filepath):
     """Get the file creation time or use current time as fallback"""
