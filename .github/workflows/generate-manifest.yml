@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      - 'night-sky-images/images**'
+      - 'images/**'
   workflow_dispatch:  # Allows manual trigger from GitHub UI
 
 jobs:
@@ -23,6 +23,18 @@ jobs:
         with:
           python-version: '3.x'
       
+      - name: Debug - List repository contents
+        run: |
+          echo "📁 Current directory: $(pwd)"
+          echo "📋 Directory contents:"
+          ls -la
+          echo ""
+          echo "🔍 Looking for images folder:"
+          find . -type d -name "images" || echo "No images folder found"
+          echo ""
+          echo "🖼️ Looking for image files:"
+          find . -type f \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" \) || echo "No image files found"
+      
       - name: Generate manifest.json
         env:
           GITHUB_USERNAME: ${{ github.repository_owner }}
@@ -38,6 +50,13 @@ jobs:
           GITHUB_USERNAME = os.environ.get('GITHUB_USERNAME')
           REPO_NAME = os.environ.get('REPO_NAME')
           IMAGES_FOLDER = "images"
+          
+          # Debug: Print current working directory and contents
+          print(f"📁 Current directory: {os.getcwd()}")
+          print(f"📋 Directory contents: {os.listdir('.')}")
+          print(f"🔍 Looking for: {IMAGES_FOLDER}/")
+          print(f"✓ Exists: {os.path.exists(IMAGES_FOLDER)}")
+          print()
 
           def get_file_creation_time(filepath):
               """Get the file modification time"""
@@ -55,7 +74,14 @@ jobs:
               images_path = Path(IMAGES_FOLDER)
               
               if not images_path.exists():
-                  print(f"❌ No {IMAGES_FOLDER} folder found")
+                  print(f"❌ Error: '{IMAGES_FOLDER}' folder not found!")
+                  print(f"📂 Current directory contents:")
+                  for item in Path('.').iterdir():
+                      print(f"  - {item}")
+                  return False
+              
+              if not images_path.is_dir():
+                  print(f"❌ Error: '{IMAGES_FOLDER}' exists but is not a directory!")
                   return False
               
               print(f"🔍 Scanning {IMAGES_FOLDER}/ for images...")
@@ -77,6 +103,9 @@ jobs:
               
               if not images:
                   print(f"❌ No images found in {IMAGES_FOLDER}/")
+                  print(f"📂 Files in {IMAGES_FOLDER}/:")
+                  for item in images_path.iterdir():
+                      print(f"  - {item.name} ({'file' if item.is_file() else 'directory'})")
                   return False
               
               manifest = {
