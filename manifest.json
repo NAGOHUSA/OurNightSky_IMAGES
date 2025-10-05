@@ -1,15 +1,15 @@
 {
-     "images": [
-       {
-         "filename": "new-image.jpg",
-         "url": "https://raw.githubusercontent.com/YOUR_USERNAME/night-sky-images/main/images/new-image.jpg",
-         "uploadedAt": "2025-10-05T14:30:00Z"
-       },
-       {
-         "filename": "test-image.jpg",
-         "url": "https://raw.githubusercontent.com/YOUR_USERNAME/night-sky-images/main/images/test-image.jpg",
-         "uploadedAt": "2025-10-05T12:00:00Z"
-       }
-     ],
-     "lastUpdated": "2025-10-05T14:30:00Z"
-   }
+  "lastUpdated": "2025-10-05T12:00:00Z",
+  "images": [
+    {
+      "filename": "night-sky-1.jpg",
+      "url": "https://raw.githubusercontent.com/NAGOHUSA/OurNightSky_IMAGES/main/images/night-sky-1.jpg",
+      "uploadedAt": "2025-10-05T10:00:00Z"
+    },
+    {
+      "filename": "night-sky-2.jpg",
+      "url": "https://raw.githubusercontent.com/NAGOHUSA/OurNightSky_IMAGES/main/images/night-sky-2.jpg",
+      "uploadedAt": "2025-10-04T15:30:00Z"
+    }
+  ]
+}
